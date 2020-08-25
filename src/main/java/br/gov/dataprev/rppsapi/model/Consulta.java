@@ -1,12 +1,13 @@
 package br.gov.dataprev.rppsapi.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
-
-
 
 @Entity
 @Table(name = "consultas")
@@ -20,28 +21,28 @@ public class Consulta implements Serializable {
 
 	@Id
 	private Long idConsulta;
-	
-	@Id	
+
+	@Id
 	private Long idArquivo;
-	
+
 	private Character origem;
 	private String nomeServidor;
 	private String nomeDependente;
 	private Character tipoServidor;
 	private Long cpf;
-	private String dataInicio;
-	private String dataInicioPagamento;
-	private String dataCessacao;
-	private Long valor;
-	private String competencia;
+	private Date dataInicioBeneficio;
+	private Date dataInicioPagamento;
+	private Date dataCessacao;
+	private BigDecimal valor;
+	private Integer competencia;
 
 	public Consulta() {
 
 	}
 
-	public Consulta(Long idConsulta, Long idArquivo, Character origem, String nomeServidor, String nomeDependente, Character tipoServidor,
-			Long cpf, String dataInicio, String dataInicioPagamento, String dataCessacao, Long valor,
-			String competencia) {
+	public Consulta(Long idConsulta, Long idArquivo, Character origem, String nomeServidor, String nomeDependente,
+			Character tipoServidor, Long cpf, Date dataInicioBeneficio, Date dataInicioPagamento,
+			Date dataCessacao, BigDecimal valor, Integer competencia) {
 		this.idConsulta = idConsulta;
 		this.idArquivo = idArquivo;
 		this.origem = origem;
@@ -49,7 +50,7 @@ public class Consulta implements Serializable {
 		this.nomeDependente = nomeDependente;
 		this.tipoServidor = tipoServidor;
 		this.cpf = cpf;
-		this.dataInicio = dataInicio;
+		this.dataInicioBeneficio = dataInicioBeneficio;
 		this.dataInicioPagamento = dataInicioPagamento;
 		this.dataCessacao = dataCessacao;
 		this.valor = valor;
@@ -112,46 +113,44 @@ public class Consulta implements Serializable {
 		this.cpf = cpf;
 	}
 
-	public String getDataInicio() {
-		return dataInicio;
+	public Date getDataInicioBeneficio() {
+		return dataInicioBeneficio;
 	}
 
-	public void setDataInicio(String dataInicio) {
-		this.dataInicio = dataInicio;
+	public void setDataInicioBeneficio(Date dataInicioBeneficio) {
+		this.dataInicioBeneficio = dataInicioBeneficio;
 	}
 
-	public String getDataInicioPagamento() {
+	public Date getDataInicioPagamento() {
 		return dataInicioPagamento;
 	}
 
-	public void setDataInicioPagamento(String dataInicioPagamento) {
+	public void setDataInicioPagamento(Date dataInicioPagamento) {
 		this.dataInicioPagamento = dataInicioPagamento;
 	}
 
-	public String getDataCessacao() {
+	public Date getDataCessacao() {
 		return dataCessacao;
 	}
 
-	public void setDataCessacao(String dataCessacao) {
+	public void setDataCessacao(Date dataCessacao) {
 		this.dataCessacao = dataCessacao;
 	}
 
-	public Long getValor() {
+	public BigDecimal getValor() {
 		return valor;
 	}
 
-	public void setValor(Long valor) {
+	public void setValor(BigDecimal valor) {
 		this.valor = valor;
 	}
 
-	public String getCompetencia() {
+	public Integer getCompetencia() {
 		return competencia;
 	}
 
-	public void setCompetencia(String competencia) {
+	public void setCompetencia(Integer competencia) {
 		this.competencia = competencia;
 	}
-
-
 
 }

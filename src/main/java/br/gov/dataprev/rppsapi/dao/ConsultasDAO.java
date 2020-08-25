@@ -5,9 +5,6 @@ import org.springframework.stereotype.Repository;
 
 import br.gov.dataprev.rppsapi.model.Consulta;
 
-
-
-
 @Repository
 public interface ConsultasDAO extends JpaRepository<Consulta, String> {
 
