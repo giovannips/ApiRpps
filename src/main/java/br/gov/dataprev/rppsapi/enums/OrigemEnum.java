@@ -17,6 +17,7 @@ public enum OrigemEnum {
     }
 
     public static OrigemEnum valorDe(String name) {
+        if (name == null) return null;
         for (OrigemEnum e : values()) {
             if (e.name().equals(name)) {
                 return e;
@@ -26,6 +27,7 @@ public enum OrigemEnum {
     }
 
     public static OrigemEnum valorDe(Character valor) {
+        if (valor == null) return null;
         for (OrigemEnum e : values()) {
             if (e.origem().equals(Character.toUpperCase(valor))) {
                 return e;

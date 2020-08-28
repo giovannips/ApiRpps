@@ -5,17 +5,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import br.gov.dataprev.rppsapi.message.ResponseMessage;
+import br.gov.dataprev.rppsapi.TOs.RetornoInsercaoTO;
+import br.gov.dataprev.rppsapi.controller.BaseController;
 
 
 
 @ControllerAdvice
-public class FileUploadExceptionAdvice extends ResponseEntityExceptionHandler {
+public class FileUploadExceptionAdvice extends BaseController {
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
-  public ResponseEntity<ResponseMessage> handleMaxSizeException(MaxUploadSizeExceededException exc) {
-    return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage("File too large!"));
+  public ResponseEntity<RetornoInsercaoTO> handleMaxSizeException(MaxUploadSizeExceededException exc) {
+
+    RetornoInsercaoTO retorno = new RetornoInsercaoTO();
+    retorno.adicionarMensagemErro(getMensagem("MSG_TAMANHO_EXCEDIDO"));
+    retorno.setSucesso(false);
+    return new ResponseEntity<RetornoInsercaoTO>(retorno, HttpStatus.EXPECTATION_FAILED);
   }
 }

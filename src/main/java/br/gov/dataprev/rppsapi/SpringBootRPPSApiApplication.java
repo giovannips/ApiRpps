@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpringBootUploadFilesDatabaseApplication {
+public class SpringBootRPPSApiApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpringBootUploadFilesDatabaseApplication.class, args);
+		SpringApplication.run(SpringBootRPPSApiApplication.class, args);
 	}
 
 }

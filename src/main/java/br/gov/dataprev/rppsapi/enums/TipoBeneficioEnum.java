@@ -1,13 +1,13 @@
 package br.gov.dataprev.rppsapi.enums;
 
-public enum TipoServidorEnum {
+public enum TipoBeneficioEnum {
 
-    CIVIL('C'),
-    MILITAR('M');
+    APOSENTADORIA('A'),
+    PENSAO('P');
 
     private Character tipo;
 
-    TipoServidorEnum(Character tipo){
+    TipoBeneficioEnum(Character tipo){
         this.tipo = tipo;
     }
 
@@ -15,9 +15,9 @@ public enum TipoServidorEnum {
         return tipo;
     }
 
-    public static TipoServidorEnum valorDe(String name) {
+    public static TipoBeneficioEnum valorDe(String name) {
         if (name == null) return null;
-        for (TipoServidorEnum e : values()) {
+        for (TipoBeneficioEnum e : values()) {
             if (e.name().equals(name)) {
                 return e;
             }
@@ -25,9 +25,9 @@ public enum TipoServidorEnum {
         return null;
     }
 
-    public static TipoServidorEnum valorDe(Character valor) {
+    public static TipoBeneficioEnum valorDe(Character valor) {
         if (valor == null) return null;
-        for (TipoServidorEnum e : values()) {
+        for (TipoBeneficioEnum e : values()) {
             if (e.tipo().equals(Character.toUpperCase(valor))) {
                 return e;
             }
