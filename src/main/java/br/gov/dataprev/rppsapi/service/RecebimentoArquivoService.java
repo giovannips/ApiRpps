@@ -3,10 +3,7 @@ package br.gov.dataprev.rppsapi.service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -109,10 +106,12 @@ public class RecebimentoArquivoService {
 					}
 				}
 			}
-			linhasDAO.saveAll(listaArquivoLinha);
 			br.close();
-		} catch (RPPSValidationException e) {
-			throw e;
+			if (ex.getMessages().size() > 0) {
+				throw ex;
+			}else {
+				linhasDAO.saveAll(listaArquivoLinha);
+			}
 		} catch (Exception e) {
 			// TODO: colocar log
 			arquivosDAO.delete(arquivo);

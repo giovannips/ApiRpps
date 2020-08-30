@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
@@ -12,63 +13,97 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "arquivos_linhas")
-@IdClass(IdsConsultas.class)
+@IdClass(IdsLinhasArquivos.class)
 public class LinhaArquivo implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	private Long idConsulta;
+	@Column(name = "id_linha")
+	private Long idLinha;
 
 	@Id
+	@Column(name = "id_arquivo")
 	private Long idArquivo;
 
+	@Column(name = "in_origem")
 	private Character origem;
-	private String nomeServidor;
+
+	@Column(name = "in_tipo_servidor")
 	private Character tipoServidor;
+
+	@Column(name = "nu_cpf_servidor")
+	private Long cpfServidor;
+
+	@Column(name = "nm_servidor")
+	private String nomeServidor;
+
+	@Column(name = "in_tipo_beneficio")
 	private Character tipoBeneficio;
-	private String nomeDependente;
+
+	@Column(name = "nu_beneficio")
+	private String numeroBeneficio;
+
+	@Column(name = "in_tipo_dependente")
 	private Character tipoDependente;
-	private Long cpf;
+
+	@Column(name = "nu_cpf_dependente")
+	private Long cpfDependente;
+
+	@Column(name = "nm_dependente")
+	private String nomeDependente;
+
+	@Column(name = "dt_inicio_beneficio")
 	private Date dataInicioBeneficio;
+
+	@Column(name = "dt_inicio_pagamento")
 	private Date dataInicioPagamento;
+
+	@Column(name = "dt_cessacao")
 	private Date dataCessacao;
-	private BigDecimal valor;
+
+	@Column(name = "nu_valor_beneficio")
+	private BigDecimal valorBeneficio;
+
+	@Column(name = "nu_valor_salario")
+	private BigDecimal valorSalario;
+
+	@Column(name = "nu_competencia")
 	private Integer competencia;
 
 	public LinhaArquivo() {
 		// propositadamente deixado em branco
 	}
 
-	public LinhaArquivo(Long idConsulta, Long idArquivo, Character origem, String nomeServidor, Character tipoServidor,
-			Character tipoBeneficio, String nomeDependente, Character tipoDependente, Long cpf,
-			Date dataInicioBeneficio, Date dataInicioPagamento, Date dataCessacao, BigDecimal valor,
-			Integer competencia) {
-		this.idConsulta = idConsulta;
+	public LinhaArquivo(Long idLinha, Long idArquivo, Character origem, Character tipoServidor, Long cpfServidor,
+			String nomeServidor, Character tipoBeneficio, String numeroBeneficio, Character tipoDependente,
+			Long cpfDependente, String nomeDependente, Date dataInicioBeneficio, Date dataInicioPagamento,
+			Date dataCessacao, BigDecimal valorBeneficio, BigDecimal valorSalario, Integer competencia) {
+		this.idLinha = idLinha;
 		this.idArquivo = idArquivo;
 		this.origem = origem;
-		this.nomeServidor = nomeServidor;
 		this.tipoServidor = tipoServidor;
+		this.cpfServidor = cpfServidor;
+		this.nomeServidor = nomeServidor;
 		this.tipoBeneficio = tipoBeneficio;
-		this.nomeDependente = nomeDependente;
+		this.numeroBeneficio = numeroBeneficio;
 		this.tipoDependente = tipoDependente;
-		this.cpf = cpf;
+		this.cpfDependente = cpfDependente;
+		this.nomeDependente = nomeDependente;
 		this.dataInicioBeneficio = dataInicioBeneficio;
 		this.dataInicioPagamento = dataInicioPagamento;
 		this.dataCessacao = dataCessacao;
-		this.valor = valor;
+		this.valorBeneficio = valorBeneficio;
+		this.valorSalario = valorSalario;
 		this.competencia = competencia;
 	}
 
-	public Long getIdConsulta() {
-		return this.idConsulta;
+	public Long getIdLinha() {
+		return this.idLinha;
 	}
 
-	public void setIdConsulta(Long idConsulta) {
-		this.idConsulta = idConsulta;
+	public void setIdLinha(Long idLinha) {
+		this.idLinha = idLinha;
 	}
 
 	public Long getIdArquivo() {
@@ -87,6 +122,22 @@ public class LinhaArquivo implements Serializable {
 		this.origem = origem;
 	}
 
+	public Character getTipoServidor() {
+		return this.tipoServidor;
+	}
+
+	public void setTipoServidor(Character tipoServidor) {
+		this.tipoServidor = tipoServidor;
+	}
+
+	public Long getCpfServidor() {
+		return this.cpfServidor;
+	}
+
+	public void setCpfServidor(Long cpfServidor) {
+		this.cpfServidor = cpfServidor;
+	}
+
 	public String getNomeServidor() {
 		return this.nomeServidor;
 	}
@@ -103,12 +154,12 @@ public class LinhaArquivo implements Serializable {
 		this.tipoBeneficio = tipoBeneficio;
 	}
 
-	public String getNomeDependente() {
-		return this.nomeDependente;
+	public String getNumeroBeneficio() {
+		return this.numeroBeneficio;
 	}
 
-	public void setNomeDependente(String nomeDependente) {
-		this.nomeDependente = nomeDependente;
+	public void setNumeroBeneficio(String numeroBeneficio) {
+		this.numeroBeneficio = numeroBeneficio;
 	}
 
 	public Character getTipoDependente() {
@@ -119,20 +170,20 @@ public class LinhaArquivo implements Serializable {
 		this.tipoDependente = tipoDependente;
 	}
 
-	public Character getTipoServidor() {
-		return this.tipoServidor;
+	public Long getCpfDependente() {
+		return this.cpfDependente;
 	}
 
-	public void setTipoServidor(Character tipoServidor) {
-		this.tipoServidor = tipoServidor;
+	public void setCpfDependente(Long cpfDependente) {
+		this.cpfDependente = cpfDependente;
 	}
 
-	public Long getCpf() {
-		return this.cpf;
+	public String getNomeDependente() {
+		return this.nomeDependente;
 	}
 
-	public void setCpf(Long cpf) {
-		this.cpf = cpf;
+	public void setNomeDependente(String nomeDependente) {
+		this.nomeDependente = nomeDependente;
 	}
 
 	public Date getDataInicioBeneficio() {
@@ -159,12 +210,20 @@ public class LinhaArquivo implements Serializable {
 		this.dataCessacao = dataCessacao;
 	}
 
-	public BigDecimal getValor() {
-		return this.valor;
+	public BigDecimal getValorBeneficio() {
+		return this.valorBeneficio;
 	}
 
-	public void setValor(BigDecimal valor) {
-		this.valor = valor;
+	public void setValorBeneficio(BigDecimal valorBeneficio) {
+		this.valorBeneficio = valorBeneficio;
+	}
+
+	public BigDecimal getValorSalario() {
+		return this.valorSalario;
+	}
+
+	public void setValorSalario(BigDecimal valorSalario) {
+		this.valorSalario = valorSalario;
 	}
 
 	public Integer getCompetencia() {
@@ -175,31 +234,6 @@ public class LinhaArquivo implements Serializable {
 		this.competencia = competencia;
 	}
 
-	public LinhaArquivo dataInicioBeneficio(Date dataInicioBeneficio) {
-		this.dataInicioBeneficio = dataInicioBeneficio;
-		return this;
-	}
-
-	public LinhaArquivo dataInicioPagamento(Date dataInicioPagamento) {
-		this.dataInicioPagamento = dataInicioPagamento;
-		return this;
-	}
-
-	public LinhaArquivo dataCessacao(Date dataCessacao) {
-		this.dataCessacao = dataCessacao;
-		return this;
-	}
-
-	public LinhaArquivo valor(BigDecimal valor) {
-		this.valor = valor;
-		return this;
-	}
-
-	public LinhaArquivo competencia(Integer competencia) {
-		this.competencia = competencia;
-		return this;
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (o == this)
@@ -208,33 +242,42 @@ public class LinhaArquivo implements Serializable {
 			return false;
 		}
 		LinhaArquivo linhaArquivo = (LinhaArquivo) o;
-		return Objects.equals(idConsulta, linhaArquivo.idConsulta) && Objects.equals(idArquivo, linhaArquivo.idArquivo)
-				&& Objects.equals(origem, linhaArquivo.origem) && Objects.equals(nomeServidor, linhaArquivo.nomeServidor)
+		return Objects.equals(idLinha, linhaArquivo.idLinha) && Objects.equals(idArquivo, linhaArquivo.idArquivo)
+				&& Objects.equals(origem, linhaArquivo.origem)
+				&& Objects.equals(tipoServidor, linhaArquivo.tipoServidor)
+				&& Objects.equals(cpfServidor, linhaArquivo.cpfServidor)
+				&& Objects.equals(nomeServidor, linhaArquivo.nomeServidor)
 				&& Objects.equals(tipoBeneficio, linhaArquivo.tipoBeneficio)
-				&& Objects.equals(nomeDependente, linhaArquivo.nomeDependente)
+				&& Objects.equals(numeroBeneficio, linhaArquivo.numeroBeneficio)
 				&& Objects.equals(tipoDependente, linhaArquivo.tipoDependente)
-				&& Objects.equals(tipoServidor, linhaArquivo.tipoServidor) && Objects.equals(cpf, linhaArquivo.cpf)
+				&& Objects.equals(cpfDependente, linhaArquivo.cpfDependente)
+				&& Objects.equals(nomeDependente, linhaArquivo.nomeDependente)
 				&& Objects.equals(dataInicioBeneficio, linhaArquivo.dataInicioBeneficio)
 				&& Objects.equals(dataInicioPagamento, linhaArquivo.dataInicioPagamento)
-				&& Objects.equals(dataCessacao, linhaArquivo.dataCessacao) && Objects.equals(valor, linhaArquivo.valor)
+				&& Objects.equals(dataCessacao, linhaArquivo.dataCessacao)
+				&& Objects.equals(valorBeneficio, linhaArquivo.valorBeneficio)
+				&& Objects.equals(valorSalario, linhaArquivo.valorSalario)
 				&& Objects.equals(competencia, linhaArquivo.competencia);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(idConsulta, idArquivo, origem, nomeServidor, tipoBeneficio, nomeDependente, tipoDependente,
-				tipoServidor, cpf, dataInicioBeneficio, dataInicioPagamento, dataCessacao, valor, competencia);
+		return Objects.hash(idLinha, idArquivo, origem, tipoServidor, cpfServidor, nomeServidor, tipoBeneficio,
+				numeroBeneficio, tipoDependente, cpfDependente, nomeDependente, dataInicioBeneficio,
+				dataInicioPagamento, dataCessacao, valorBeneficio, valorSalario, competencia);
 	}
 
 	@Override
 	public String toString() {
-		return "{" + " idConsulta='" + getIdConsulta() + "'" + ", idArquivo='" + getIdArquivo() + "'" + ", origem='"
-				+ getOrigem() + "'" + ", nomeServidor='" + getNomeServidor() + "'" + ", tipoBeneficio='"
-				+ getTipoBeneficio() + "'" + ", nomeDependente='" + getNomeDependente() + "'" + ", tipoDependente='"
-				+ getTipoDependente() + "'" + ", tipoServidor='" + getTipoServidor() + "'" + ", cpf='" + getCpf() + "'"
-				+ ", dataInicioBeneficio='" + getDataInicioBeneficio() + "'" + ", dataInicioPagamento='"
-				+ getDataInicioPagamento() + "'" + ", dataCessacao='" + getDataCessacao() + "'" + ", valor='"
-				+ getValor() + "'" + ", competencia='" + getCompetencia() + "'" + "}";
+		return "{" + " idLinha='" + getIdLinha() + "'" + ", idArquivo='" + getIdArquivo() + "'" + ", origem='"
+				+ getOrigem() + "'" + ", tipoServidor='" + getTipoServidor() + "'" + ", cpfServidor='"
+				+ getCpfServidor() + "'" + ", nomeServidor='" + getNomeServidor() + "'" + ", tipoBeneficio='"
+				+ getTipoBeneficio() + "'" + ", numeroBeneficio='" + getNumeroBeneficio() + "'" + ", tipoDependente='"
+				+ getTipoDependente() + "'" + ", cpfDependente='" + getCpfDependente() + "'" + ", nomeDependente='"
+				+ getNomeDependente() + "'" + ", dataInicioBeneficio='" + getDataInicioBeneficio() + "'"
+				+ ", dataInicioPagamento='" + getDataInicioPagamento() + "'" + ", dataCessacao='" + getDataCessacao()
+				+ "'" + ", valorBeneficio='" + getValorBeneficio() + "'" + ", valorSalario='" + getValorSalario() + "'"
+				+ ", competencia='" + getCompetencia() + "'" + "}";
 	}
 
 }

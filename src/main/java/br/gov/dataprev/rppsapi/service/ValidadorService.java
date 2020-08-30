@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import br.gov.dataprev.rppsapi.enums.OrigemEnum;
 import br.gov.dataprev.rppsapi.enums.TipoBeneficioEnum;
@@ -22,7 +20,7 @@ public class ValidadorService {
 	private static final int[] pesoCPF = { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
 	private static final int[] pesoCNPJ = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
 	private static SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-	private static Integer QUANT_COLUNAS = 14;
+	private static Integer QUANT_COLUNAS = 17;
 
 	private static int calcularDigito(String str, int[] peso) {
 		int soma = 0;
@@ -34,56 +32,64 @@ public class ValidadorService {
 		return soma > 9 ? 0 : soma;
 	}
 
-	public static LinhaArquivo validarCampos(String[] linha, Long numeroLinhaCalculado, Long idArquivo)
+	public static LinhaArquivo validarCampos(String[] linha, Long idLinha, Long idArquivo)
 			throws RPPSValidationException {
 
 		RPPSValidationException ex = new RPPSValidationException();
 
 		if (linha.length != QUANT_COLUNAS) {
-			ex.addMessage(new RPPSValidationMessage("MSG_QUANT_COLUNAS_INVALIDO", "MSG_QUANT_COLUNAS_INVALIDO",
-					numeroLinhaCalculado, linha.length, QUANT_COLUNAS));
+			ex.addMessage(new RPPSValidationMessage("MSG_QUANT_COLUNAS_INVALIDO", "MSG_QUANT_COLUNAS_INVALIDO", idLinha,
+					linha.length, QUANT_COLUNAS));
 		} else {
 
 			if (!org.apache.commons.lang3.StringUtils.isNumeric(linha[0])
-					|| Long.parseLong(linha[0]) != numeroLinhaCalculado.longValue()) {
-				ex.addMessage(new RPPSValidationMessage("MSG_NUMERO_LINHA_INVALIDO", "MSG_NUMERO_LINHA_INVALIDO",
-						numeroLinhaCalculado));
+					|| Long.parseLong(linha[0]) != idLinha.longValue()) {
+				ex.addMessage(
+						new RPPSValidationMessage("MSG_NUMERO_LINHA_INVALIDO", "MSG_NUMERO_LINHA_INVALIDO", idLinha));
 			}
 
 			// só valida CNPJ
-			obterCNPJ(linha[1], numeroLinhaCalculado, ex);
+			obterCNPJ(linha[1], idLinha, ex);
 
-			Long cpf = obterCPF(linha[8], numeroLinhaCalculado, ex);
+			Character origem = obterOrigem(linha[2], idLinha, ex);
 
-			Character origem = obterOrigem(linha[2], numeroLinhaCalculado, ex);
+			Character tipoServidor = obterTipoServidor(linha[3], idLinha, ex);
 
-			String nomeServidor = obterNome(linha[3], numeroLinhaCalculado, ex, "MSG_NOME_SERVIDOR_INVALIDO", false);
+			Long cpfServidor = obterCPF(linha[4], idLinha, ex, "MSG_CPF_SERVIDOR_INVALIDO", false);
 
-			Character tipoServidor = obterTipoServidor(linha[4], numeroLinhaCalculado, ex);
+			String nomeServidor = obterNome(linha[5], idLinha, ex, "MSG_NOME_SERVIDOR_INVALIDO", false);
 
-			Character tipoBeneficio = obterTipoBeneficio(linha[5], numeroLinhaCalculado, ex);
+			Character tipoBeneficio = obterTipoBeneficio(linha[6], idLinha, ex);
 
-			String nomeDependente = obterNome(linha[6], numeroLinhaCalculado, ex, "MSG_NOME_DEPENDENTE_INVALIDO",
-					!TipoBeneficioEnum.valorDe(tipoBeneficio).equals(TipoBeneficioEnum.PENSAO));
+			String numeroBeneficio = obterNumeroBeneficio(linha[7]);
 
-			Character tipoDependente = obterTipoDependente(linha[7], numeroLinhaCalculado, ex, tipoBeneficio);
+			Character tipoDependente = obterTipoDependente(linha[8], idLinha, ex, tipoBeneficio);
 
-			Date dataInicioBeneficio = obterData(linha[9], numeroLinhaCalculado, ex, false,
-					"MSG_DATA_INICIO_BENEFICIO_INVALIDA");
+			Long cpfDependente = obterCPF(linha[9], idLinha, ex, "MSG_CPF_DEPENDENTE_INVALIDO",
+					!TipoBeneficioEnum.PENSAO.equals(TipoBeneficioEnum.valorDe(tipoBeneficio)));
 
-			Date dataInicioPagamento = obterData(linha[10], numeroLinhaCalculado, ex, false,
-					"MSG_DATA_INICIO_PAGAMENTO_INVALIDA");
+			String nomeDependente = obterNome(linha[10], idLinha, ex, "MSG_NOME_DEPENDENTE_INVALIDO",
+					!TipoBeneficioEnum.PENSAO.equals(TipoBeneficioEnum.valorDe(tipoBeneficio)));
 
-			Date dataCessacao = obterData(linha[11], numeroLinhaCalculado, ex, true, "MSG_DATA_CESSACAO_INVALIDA");
+			Date dataInicioBeneficio = obterData(linha[11], idLinha, ex, false, "MSG_DATA_INICIO_BENEFICIO_INVALIDA");
 
-			BigDecimal valor = obterValor(linha[12], numeroLinhaCalculado, ex);
+			Date dataInicioPagamento = obterData(linha[12], idLinha, ex, false, "MSG_DATA_INICIO_PAGAMENTO_INVALIDA");
 
-			Integer competencia = obterCompetencia(linha[13], numeroLinhaCalculado, ex);
+			Date dataCessacao = obterData(linha[13], idLinha, ex, true, "MSG_DATA_CESSACAO_INVALIDA");
 
-			if (ex.isEmpty()){
-			return new LinhaArquivo(numeroLinhaCalculado, idArquivo, origem, nomeServidor, tipoServidor, tipoBeneficio,
-					nomeDependente, tipoDependente, cpf, dataInicioBeneficio, dataInicioPagamento, dataCessacao, valor,
-					competencia);
+			BigDecimal valorBeneficio = obterValor(linha[14], idLinha, ex, "MSG_VALOR_BENEFICIO_NULO",
+					"MSG_VALOR_BENEFICIO_INVALIDO", (tipoBeneficio == null));
+
+			BigDecimal valorSalario = obterValor(linha[15], idLinha, ex, "MSG_VALOR_SALARIO_NULO",
+					"MSG_VALOR_SALARIO_INVALIDO", (tipoBeneficio != null));
+
+			Integer competencia = obterCompetencia(linha[16], idLinha, ex);
+
+			if (ex.isEmpty()) {
+				return new LinhaArquivo(idLinha, idArquivo, origem, tipoServidor, cpfServidor, nomeServidor,
+						tipoBeneficio, numeroBeneficio, tipoDependente, cpfDependente, nomeDependente,
+						dataInicioBeneficio, dataInicioPagamento, dataCessacao, valorBeneficio, valorSalario,
+						competencia);
 			}
 		}
 		throw ex;
@@ -107,11 +113,16 @@ public class ValidadorService {
 		return null;
 	}
 
-	private static Long obterCPF(String strCPF, Long numeroLinha, RPPSValidationException ex) {
+	private static Long obterCPF(String strCPF, Long numeroLinha, RPPSValidationException ex, String msg,
+			Boolean podeNulo) {
 
 		strCPF = strCPF.replaceAll("[^0-9]", "");
 		if (strCPF.equals("")) {
-			ex.addMessage(new RPPSValidationMessage("MSG_CPF_INVALIDO", "MSG_CPF_INVALIDO", numeroLinha, strCPF));
+			if (podeNulo) {
+				return null;
+			} else {
+				ex.addMessage(new RPPSValidationMessage(msg, msg, numeroLinha, strCPF));
+			}
 		} else {
 			strCPF = String.format("%011d", Long.parseLong(strCPF.toString()));
 			Integer digito1 = calcularDigito(strCPF.substring(0, 9), pesoCPF);
@@ -120,7 +131,7 @@ public class ValidadorService {
 			if (strCPF.equals(strCPF.substring(0, 9) + digito1.toString() + digito2.toString())) {
 				return Long.parseLong(strCPF);
 			} else {
-				ex.addMessage(new RPPSValidationMessage("MSG_CPF_INVALIDO", "MSG_CPF_INVALIDO", numeroLinha, strCPF));
+				ex.addMessage(new RPPSValidationMessage(msg, msg, numeroLinha, strCPF));
 			}
 		}
 		return null;
@@ -159,9 +170,9 @@ public class ValidadorService {
 	}
 
 	private static Character obterTipoBeneficio(String strTipoBeneficio, Long numeroLinha, RPPSValidationException ex) {
+		strTipoBeneficio = strTipoBeneficio.trim();
 		if (strTipoBeneficio.equals("")) {
-			ex.addMessage(new RPPSValidationMessage("MSG_TIPO_BENEFICIO_INVALIDO", "MSG_TIPO_BENEFICIO_INVALIDO",
-					numeroLinha, strTipoBeneficio));
+			return null;
 		} else {
 			Character tipoBeneficio = strTipoBeneficio.charAt(0);
 			if (TipoBeneficioEnum.valorDe(tipoBeneficio) != null) {
@@ -178,7 +189,7 @@ public class ValidadorService {
 			Character tipoBeneficio) {
 		strTipoDependente = strTipoDependente.trim();
 		if (strTipoDependente.equals("")) {
-			if (TipoBeneficioEnum.valorDe(tipoBeneficio).equals(TipoBeneficioEnum.PENSAO)) {
+			if (TipoBeneficioEnum.PENSAO.equals(TipoBeneficioEnum.valorDe(tipoBeneficio))) {
 				ex.addMessage(new RPPSValidationMessage("MSG_TIPO_DEPENDENTE_OBRIGATORIO",
 						"MSG_TIPO_DEPENDENTE_OBRIGATORIO", numeroLinha));
 			} else {
@@ -227,18 +238,24 @@ public class ValidadorService {
 		}
 	}
 
-	private static BigDecimal obterValor(String strValor, Long numeroLinha, RPPSValidationException ex) {
+	private static BigDecimal obterValor(String strValor, Long numeroLinha, RPPSValidationException ex, String msgNulo,
+			String msgInvalido, Boolean podeNulo) {
 		strValor = strValor.replace(".", "");
 		strValor = strValor.replace(",", ".");
 		strValor = strValor.trim();
 
 		if (strValor.equals("")) {
-			ex.addMessage(new RPPSValidationMessage("MSG_VALOR_NULO", "MSG_VALOR_NULO", numeroLinha));
-		}
-		try {
-			return new BigDecimal(strValor);
-		} catch (Exception e) {
-			ex.addMessage(new RPPSValidationMessage("MSG_VALOR_INVALIDO", "MSG_VALOR_INVALIDO", numeroLinha, strValor));
+			if (podeNulo) {
+				return null;
+			} else {
+				ex.addMessage(new RPPSValidationMessage(msgNulo, msgNulo, numeroLinha));
+			}
+		} else {
+			try {
+				return new BigDecimal(strValor);
+			} catch (Exception e) {
+				ex.addMessage(new RPPSValidationMessage(msgInvalido, msgInvalido, numeroLinha, strValor));
+			}
 		}
 		return null;
 	}
@@ -258,6 +275,14 @@ public class ValidadorService {
 		ex.addMessage(new RPPSValidationMessage("MSG_COMPETENCIA_INVALIDA", "MSG_COMPETENCIA_INVALIDA",
 				numeroLinhaCalculado, strCompetencia));
 		return null;
+	}
+
+	private static String obterNumeroBeneficio(String numeroBeneficio) {
+		numeroBeneficio = numeroBeneficio.trim();
+		if (numeroBeneficio.equals("")) {
+			return null;
+		}
+		return numeroBeneficio;
 	}
 
 	public static void validarNumeroLinhas(BufferedReader br, RPPSValidationException ex)
@@ -289,7 +314,5 @@ public class ValidadorService {
 			throw ex;
 		}
 	}
-
-
 
 }
