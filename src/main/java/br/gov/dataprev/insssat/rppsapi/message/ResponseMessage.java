@@ -1,4 +1,4 @@
-package br.gov.dataprev.rppsapi.message;
+package br.gov.dataprev.insssat.rppsapi.message;
 
 public class ResponseMessage {
   private String message;

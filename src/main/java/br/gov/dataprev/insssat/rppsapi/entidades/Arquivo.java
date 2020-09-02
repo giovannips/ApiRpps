@@ -1,4 +1,4 @@
-package br.gov.dataprev.rppsapi.model;
+package br.gov.dataprev.insssat.rppsapi.entidades;
 
 import java.util.Date;
 
