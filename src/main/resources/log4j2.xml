@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG">
+    <Appenders>
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%t %-5p [%d] [%c{1}.%M:%L] %m%n"/>
+        </Console>
+
+        <RollingRandomAccessFile name="LogToRollingRandomAccessFile" fileName="/etc/config/insssat/rppsapi/rppsapi.log"
+		    filePattern="/etc/config/insssat/rppsapi/rppsapi-%d{yyyy-MM-dd}-%i.log.gz">
+	        <PatternLayout>
+		        <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+	        </PatternLayout>
+	        <Policies>
+		        <TimeBasedTriggeringPolicy/>
+		        <SizeBasedTriggeringPolicy size="10 Kb"/>
+	        </Policies>
+	        <DefaultRolloverStrategy max="10"/>
+        </RollingRandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="br.gov.dataprev.insssat" level="debug" additivity="false">
+            <AppenderRef ref="LogToRollingRandomAccessFile"/>
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Logger name="org.springframework.boot" level="error" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="LogToRollingRandomAccessFile"/>
+            <AppenderRef ref="LogToConsole"/>
+        </Root>
+    </Loggers>
+</Configuration>
+
+
+

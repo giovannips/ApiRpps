@@ -21,7 +21,7 @@ import br.gov.dataprev.insssat.rppsapi.exception.RPPSValidationException;
 import br.gov.dataprev.insssat.rppsapi.exception.RPPSValidationMessage;
 
 @Service
-public class RecebimentoArquivoService {
+public class ArquivoService {
 
 	@Autowired
 	private LinhasDAO linhasDAO;
@@ -122,6 +122,18 @@ public class RecebimentoArquivoService {
 			throw ex;
 		}
 		return arquivo;
+	}
+
+	public List<Arquivo> obterListaArquivosPorCNPJ(Long cnpj){
+		
+		return arquivosDAO.obterListaArquivosPorCnpj(cnpj);
+
+	}
+
+	public List<LinhaArquivo> receberArquivo(String idArquivo) {
+
+		return linhasDAO.obterRetornoArquivo(Long.parseLong(idArquivo));
+
 	}
 
 }

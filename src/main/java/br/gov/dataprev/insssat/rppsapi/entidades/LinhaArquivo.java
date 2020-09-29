@@ -11,6 +11,10 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 
+import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvBindByPosition;
+import com.opencsv.bean.CsvDate;
+
 @Entity
 @Table(name = "arquivos_linhas")
 @IdClass(IdsLinhasArquivos.class)
@@ -18,6 +22,7 @@ public class LinhaArquivo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+//	@CsvBindByPosition(position = 0)
 	@Id
 	@Column(name = "id_linha")
 	private Long idLinha;
@@ -53,6 +58,8 @@ public class LinhaArquivo implements Serializable {
 	@Column(name = "nm_dependente")
 	private String nomeDependente;
 
+//	@CsvBindByPosition(position = 1)
+	@CsvDate(value = "dd/MM/yyyy")
 	@Column(name = "dt_inicio_beneficio")
 	private Date dataInicioBeneficio;
 

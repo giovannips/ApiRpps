@@ -1,27 +1,43 @@
 package br.gov.dataprev.insssat.rppsapi.controller;
 
 import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
+import com.opencsv.CSVWriter;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import br.gov.dataprev.insssat.rppsapi.TOs.RetornoInsercaoTO;
+import br.gov.dataprev.insssat.rppsapi.TOs.RetornoListaArquivosTO;
 import br.gov.dataprev.insssat.rppsapi.entidades.Arquivo;
+import br.gov.dataprev.insssat.rppsapi.entidades.LinhaArquivo;
 import br.gov.dataprev.insssat.rppsapi.exception.RPPSValidationException;
 import br.gov.dataprev.insssat.rppsapi.exception.RPPSValidationMessage;
-import br.gov.dataprev.insssat.rppsapi.service.RecebimentoArquivoService;
+import br.gov.dataprev.insssat.rppsapi.service.ArquivoService;
 
 @Controller
 // @CrossOrigin(origins = "http://127.0.0.1:8080")
 public class FileController extends BaseController {
 
+	private static Logger LOGGER = LogManager.getLogger(FileController.class);
+
 	@Autowired
-	private RecebimentoArquivoService recebimentoArquivosService;
+	private ArquivoService arquivosService;
 
 	@PostMapping("/upload")
 	public ResponseEntity<RetornoInsercaoTO> uploadFile(@RequestParam("file") MultipartFile file,
@@ -29,31 +45,72 @@ public class FileController extends BaseController {
 
 		RetornoInsercaoTO retorno = new RetornoInsercaoTO();
 		try {
-			Arquivo arquivo = recebimentoArquivosService.gravarDadosArquivo(file, cnpj);
+			Arquivo arquivo = arquivosService.gravarDadosArquivo(file, cnpj);
 
 			retorno.setSucesso(true);
 			retorno.setArquivo(arquivo);
+			LOGGER.debug("Enviou corretamente");
 			return new ResponseEntity<RetornoInsercaoTO>(retorno, HttpStatus.OK);
 		} catch (RPPSValidationException e) {
 			for (RPPSValidationMessage mensagem : e.getMessages()) {
 				retorno.adicionarMensagemErro(getMensagem(mensagem.getDebugMessage(), mensagem.getParams()));
+				LOGGER.debug(getMensagem(mensagem.getDebugMessage(), mensagem.getParams()), e);
 			}
 			retorno.setSucesso(false);
 			return new ResponseEntity<RetornoInsercaoTO>(retorno, HttpStatus.BAD_REQUEST);
 		} catch (IOException e) {
-			// TODO:fazer LOG
-			// LOG.error(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			retorno.adicionarMensagemErro(getMensagem("MSG_IO_EXCEPTION"));
 			retorno.setSucesso(false);
 			return new ResponseEntity<RetornoInsercaoTO>(retorno, HttpStatus.FORBIDDEN);
 		} catch (Exception e) {
-			// TODO:fazer LOG
-			// LOG.error(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			retorno.adicionarMensagemErro(getMensagem("MSG_ERRO_GERAL"));
 			retorno.setSucesso(false);
 			return new ResponseEntity<RetornoInsercaoTO>(retorno, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
+	}
+
+	@GetMapping(path = "/obterListaArquivosPorCNPJ/{cnpj}")
+	public ResponseEntity<RetornoListaArquivosTO> obterListaArquivosPorCNPJ(@PathVariable String cnpj) {
+
+		RetornoListaArquivosTO retorno = new RetornoListaArquivosTO();
+
+
+
+		try {
+			List<Arquivo> listaArquivos = arquivosService.obterListaArquivosPorCNPJ(Long.parseLong(cnpj));
+			retorno.setListaArquivos(listaArquivos);
+			LOGGER.debug("ttatcttggacaagaagaagatcgcttggcctcgcgcgcagatcagttggaagaatttgtccactacgtgttcccgcccggtgcagtatgaaggcggcggagccgacaccacggccaccgatattatttgcccgatgtacgcgcgcgtggatgaagaccagcccttcccggctgtgccgaaatggtccatcaaaaaatggctttcgctacgagcgtgggtctcgcggtatcattgcagcactggggccagatggtaagccctcccgtatcgtagttatctacacgacggggagtcaggcaactatggatgaacgaaatagacagatcgctgagataggtgcctcactgattaagcattggtaactgtcagaccaagtttactcatatatactttagattgatttaaaacttcatttttaatttaaaaggatctaggtgaagatcctttttgataatctcatgaccaaaatcccttaacgtgagttttcgttccactgagcgtcagaccccgtagaaaagatcaaaggatcttcttgagatcctttttttctgcgcgtaatctgctgcttgcaaacaaaaaaaccaccgctaccagcggtggtttgtttgccggatcaagagctaccaactctttttccgaaggtaactggcttcagcagagcgcagataccaaatactgttcttctagtgtagccgtagttaggccaccacttcaagaactctgtagcaccgcctacatacctcgctctgctaatcctgttaccagtggctgctgccagtggcgataagtcgtgtcttaccgggttggactcaagacgatagttaccggataaggcgcagcggtcgggctgaacggggggttcgtgcacacagcccagcttggagcgaacgacctacaccgaactgagatacctacagcgtgagctatgagaaagcgccacgcttcccgaagggagaaaggcggacaggtatccggtaagcggcagggtcggaacaggagagcgcacgagggagcttccagggggaaacgcctggtatctttatagtcctgtcgggtttcgccacctctgacttgagcgtcgatttttgtgatgctcgtcaggggggcggagcctatggaaaaacgccagcaacgcggcctttttacggttcctggccttttgctggccttttgctcacatgttctttcctgcgttatcccctgattctgtggataaccgtattaccgcctttgagtgagctgataccgctcgccgcagccgaacgaccgagcgcagcgagtcagtagcgaggagctcactcattaggcaccccaggctttacactttatgcttccggctcgtatattgtgtggaattgtgagcggataacaatttcacacaggaaacagct");
+			return new ResponseEntity<RetornoListaArquivosTO>(retorno, HttpStatus.OK);
+
+		} catch (NumberFormatException e) {
+			retorno.adicionarMensagemErro(getMensagem("MSG_CNPJ_CONSULTA_INVALIDO"));
+			return new ResponseEntity<RetornoListaArquivosTO>(retorno, HttpStatus.BAD_REQUEST);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			retorno.adicionarMensagemErro(getMensagem("MSG_ERRO_GERAL"));
+			return new ResponseEntity<RetornoListaArquivosTO>(retorno, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@GetMapping("/downloadArquivo/{idArquivo}")
+	public void exportCSV(HttpServletResponse response, @PathVariable String idArquivo) throws Exception {
+
+		if (idArquivo == null || idArquivo.equals("a")) {
+			response.sendError(500, "Necessário enviar idArquivo");
+		} else {
+			String filename = idArquivo + ".csv";
+			response.setContentType("text/csv");
+			response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
+			StatefulBeanToCsv<LinhaArquivo> writer = new StatefulBeanToCsvBuilder<LinhaArquivo>(response.getWriter())
+					.withQuotechar(CSVWriter.NO_QUOTE_CHARACTER).withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+					.withOrderedResults(false).build();
+
+			writer.write(arquivosService.receberArquivo(idArquivo));
+		}
 	}
 
 }
