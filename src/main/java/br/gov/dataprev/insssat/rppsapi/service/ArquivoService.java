@@ -7,12 +7,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.gov.dataprev.insssat.rppsapi.TOs.ArquivoFisicoTO;
 import br.gov.dataprev.insssat.rppsapi.dao.ArquivosDAO;
 import br.gov.dataprev.insssat.rppsapi.dao.LinhasDAO;
 import br.gov.dataprev.insssat.rppsapi.entidades.Arquivo;
@@ -29,11 +31,10 @@ public class ArquivoService {
 	@Autowired
 	private ArquivosDAO arquivosDAO;
 
-	public Arquivo gravarDadosArquivo(MultipartFile file, String cnpjCredencial) throws IOException, RPPSValidationException {
+	public Arquivo gravarDadosArquivo(MultipartFile file, String cnpjCredencial)
+			throws IOException, RPPSValidationException {
 		RPPSValidationException ex = new RPPSValidationException();
 		Arquivo arquivo = new Arquivo();
-
-		// FileDB FileDB = new FileDB(fileName, file.getContentType(), file.getBytes());
 
 		String tipoArquivo = file.getContentType();
 
@@ -43,11 +44,11 @@ public class ArquivoService {
 		}
 
 		String cnpj = ValidadorService.obterCNPJValido(cnpjCredencial);
-		if (cnpj == null){
-			ex.addMessage(new RPPSValidationMessage("MSG_CNPJ_CREDENCIAL_INVALIDO", "MSG_CNPJ_CREDENCIAL_INVALIDO", cnpjCredencial));
+		if (cnpj == null) {
+			ex.addMessage(new RPPSValidationMessage("MSG_CNPJ_CREDENCIAL_INVALIDO", "MSG_CNPJ_CREDENCIAL_INVALIDO",
+					cnpjCredencial));
 			throw ex;
 		}
-
 
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 		String stringArquivo = new String(file.getBytes(), StandardCharsets.UTF_8);
@@ -68,7 +69,7 @@ public class ArquivoService {
 			BufferedReader br = new BufferedReader(new StringReader(stringArquivo));
 			String line = "";
 			Long id = 0L;
-			List<LinhaArquivo> listaArquivoLinha = new ArrayList<LinhaArquivo>();
+			List<LinhaArquivo> listaArquivoLinha = new ArrayList<>();
 			Long idArquivo = null;
 
 			arquivo.setCnpjEnte(Long.parseLong(cnpj));
@@ -108,7 +109,7 @@ public class ArquivoService {
 			br.close();
 			if (ex.getMessages().size() > 0) {
 				throw ex;
-			}else {
+			} else {
 				linhasDAO.saveAll(listaArquivoLinha);
 			}
 		} catch (RPPSValidationException e) {
@@ -124,16 +125,126 @@ public class ArquivoService {
 		return arquivo;
 	}
 
-	public List<Arquivo> obterListaArquivosPorCNPJ(Long cnpj){
-		
-		return arquivosDAO.obterListaArquivosPorCnpj(cnpj);
+	public Arquivo gravarDadosArquivo(ArquivoFisicoTO arquivoFisico, String cnpjCredencial)
+			throws IOException, RPPSValidationException {
+		RPPSValidationException ex = new RPPSValidationException();
+		Arquivo arquivo = new Arquivo();
+
+		String cnpj = ValidadorService.obterCNPJValido(cnpjCredencial);
+		if (cnpj == null) {
+			ex.addMessage(new RPPSValidationMessage("MSG_CNPJ_CREDENCIAL_INVALIDO", "MSG_CNPJ_CREDENCIAL_INVALIDO",
+					cnpjCredencial));
+			throw ex;
+		}
+
+		String arquivoDescompactado;
+		// valida informação de quantidade de registros e número de linhas
+		try {
+			arquivoDescompactado = RPPSUtil.descompacta(arquivoFisico.getStringArquivo());
+			BufferedReader br = new BufferedReader(new StringReader(arquivoDescompactado));
+			ValidadorService.validarNumeroLinhas(br, ex);
+			br.close();
+		} catch (RPPSValidationException e) {
+			throw e;
+		} catch (DataFormatException e) {
+			// TODO: colocar log
+			ex.addMessage(new RPPSValidationMessage("MSG_ARQUIVO_INVALIDO", "MSG_ARQUIVO_INVALIDO"));
+			throw ex;
+		} catch (Exception e) {
+			// TODO: colocar log
+			ex.addMessage(new RPPSValidationMessage("MSG_ARQUIVO_INVALIDO", "MSG_ARQUIVO_INVALIDO"));
+			throw ex;
+		}
+
+		try {
+			BufferedReader br = new BufferedReader(new StringReader(arquivoDescompactado));
+			String line = "";
+			Long id = 0L;
+			List<LinhaArquivo> listaArquivoLinha = new ArrayList<>();
+			Long idArquivo = null;
+
+			arquivo.setCnpjEnte(Long.parseLong(cnpj));
+			arquivo.setDataRegistro(new Date());
+			arquivo.setNomeArquivo(arquivoFisico.getNomeArquivo());
+			arquivo.setProcessado(false);
+			arquivo = arquivosDAO.save(arquivo);
+			idArquivo = arquivo.getIdArquivo();
+
+			while ((line = br.readLine()) != null) {
+				// descarto as linhas em branco
+				if (!line.equals("")) {
+					String linha[] = line.split(";");
+					// descarto a linha com a quantidade
+					if (linha.length > 1) {
+						id = id + 1;
+
+						try {
+							listaArquivoLinha.add(ValidadorService.validarCampos(linha, id, idArquivo, cnpj));
+						} catch (RPPSValidationException e) {
+							for (RPPSValidationMessage mensagem : e.getMessages()) {
+								ex.addMessage(mensagem);
+							}
+						}
+
+						// A cada 100 linhas verifico se existem muitas mensagens de erro.
+						// Se existirem já subo e não valido tudo
+						if (id % 100 == 0 && ex.getMessages().size() > 100) {
+							ex.addMessage(new RPPSValidationMessage("MSG_MUITOS_ERROS", "MSG_MUITOS_ERROS"));
+							arquivosDAO.delete(arquivo);
+							br.close();
+							throw ex;
+						}
+					}
+				}
+			}
+			br.close();
+			if (!ex.getMessages().isEmpty()) {
+				throw ex;
+			} else {
+				linhasDAO.saveAll(listaArquivoLinha);
+			}
+		} catch (RPPSValidationException e) {
+			arquivosDAO.delete(arquivo);
+			throw e;
+		} catch (Exception e) {
+			// TODO: colocar log
+			arquivosDAO.delete(arquivo);
+			ex.addMessage(
+					new RPPSValidationMessage("MSG_PROBLEMA_GRAVACAO_REGISTROS", "MSG_PROBLEMA_GRAVACAO_REGISTROS"));
+			throw ex;
+		}
+		return arquivo;
+	}
+
+	public List<LinhaArquivo> obterLinhasPorCPF(Long cpf) {
+		List<LinhaArquivo> listaRetorno = new ArrayList<>();
+		try {
+			listaRetorno.addAll(linhasDAO.obterLinhasporCPF(cpf));
+			listaRetorno.addAll(linhasDAO.obterLinhasporCPFDependente(cpf));
+			return listaRetorno;
+		} catch (Exception e) {
+			// TODO: colocar log
+			throw e;
+		}
 
 	}
 
+	public List<Arquivo> obterListaArquivosPorCNPJ(Long cnpj) {
+		try {
+			return arquivosDAO.obterListaArquivosPorCnpj(cnpj);
+		} catch (Exception e) {
+			// TODO: colocar log
+			throw e;
+		}
+	}
+
 	public List<LinhaArquivo> receberArquivo(String idArquivo) {
-
-		return linhasDAO.obterRetornoArquivo(Long.parseLong(idArquivo));
-
+		try {
+			return linhasDAO.obterRetornoArquivo(Long.parseLong(idArquivo));
+		} catch (Exception e) {
+			// TODO: colocar log
+			throw e;
+		}
 	}
 
 }

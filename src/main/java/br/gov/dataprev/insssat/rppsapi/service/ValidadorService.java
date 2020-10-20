@@ -48,7 +48,7 @@ public class ValidadorService {
 		}
 	}
 
-	public static LinhaArquivo validarCampos(String[] linha, Long idLinha, Long idArquivo, String cnpj)
+	public static LinhaArquivo validarCampos(String[] linha, Long idLinha, Long idArquivo, String cnpjEnte)
 			throws RPPSValidationException {
 
 		RPPSValidationException ex = new RPPSValidationException();
@@ -65,7 +65,7 @@ public class ValidadorService {
 			}
 
 			// só valida CNPJ
-			obterCNPJ(linha[1], idLinha, cnpj, ex);
+			Long cnpj = obterCNPJ(linha[1], idLinha, cnpjEnte, ex);
 
 			Character origem = obterOrigem(linha[2], idLinha, ex);
 
@@ -102,7 +102,7 @@ public class ValidadorService {
 			Integer competencia = obterCompetencia(linha[16], idLinha, ex);
 
 			if (ex.isEmpty()) {
-				return new LinhaArquivo(idLinha, idArquivo, origem, tipoServidor, cpfServidor, nomeServidor,
+				return new LinhaArquivo(idLinha, idArquivo, cnpj, origem, tipoServidor, cpfServidor, nomeServidor,
 						tipoBeneficio, numeroBeneficio, tipoDependente, cpfDependente, nomeDependente,
 						dataInicioBeneficio, dataInicioPagamento, dataCessacao, valorBeneficio, valorSalario,
 						competencia);

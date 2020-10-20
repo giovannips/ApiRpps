@@ -21,15 +21,16 @@ public class Arquivo {
 	@Column(name = "id_arquivo")
 	private Long idArquivo;
 	
-	@Column(name = "cnpj_ente")
+	@Column(name = "nu_cnpj_ente")
 	private Long cnpjEnte;
 	
-	@Column(name = "data_registro")
+	@Column(name = "dt_registro")
 	private Date dataRegistro;
 	
-	@Column(name = "nome_arquivo")
+	@Column(name = "nm_arquivo")
 	private String nomeArquivo;
 	
+	@Column(name = "in_processado")
 	private Boolean processado;
 
 	
